@@ -23,6 +23,11 @@ jobs:
         run: mvn clean verify
         working-directory: ./simple-api
 
+      # Analyze with SonarQube
+      - name: Analyze with SonarQube
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=ocineh_tp-devops-correction-docker -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        working-directory: ./simple-api
+
   # Build and publish the containers images
   build-and-push-docker-image:
     needs: test-backend
