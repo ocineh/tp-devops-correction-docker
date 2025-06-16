@@ -1,38 +1,15 @@
-name: CI devops 2025
+name: CI devops 2025 - Build and Push Docker Image
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
+  workflow_run:
+    workflows: ["CI devops 2025 - Test Backend"]
+    branches: [main]
+    types:
+      - completed
 
 jobs:
-  test-backend:
-    runs-on: ubuntu-24.04
-    steps:
-      # Retrieve the latest version of the repo
-      - uses: actions/checkout@v4
-
-      # Set up the environment to use afterward
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "21"
-
-      # Run the tests with maven
-      - name: Build and test with Maven
-        run: mvn clean verify
-        working-directory: ./simple-api
-
-      # Analyze with SonarQube
-      - name: Analyze with SonarQube
-        run: mvn -B verify sonar:sonar -Dsonar.projectKey=ocineh_tp-devops-correction-docker -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-        working-directory: ./simple-api
-
-  # Build and publish the containers images
   build-and-push-docker-image:
-    needs: test-backend
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,7 +27,7 @@ jobs:
         with:
           context: ./simple-api
           tags: ${{ vars.FORGEJO_DOMAIN }}/${{ vars.FORGEJO_USERNAME }}/tp-devops-simple-api:latest
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: true
 
       # Build and publish the container image for the database
       - name: Build image and push database
@@ -58,7 +35,7 @@ jobs:
         with:
           context: ./database
           tags: ${{ vars.FORGEJO_DOMAIN }}/${{ vars.FORGEJO_USERNAME }}/tp-devops-database:latest
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: true
 
       # Build and publish the container image for the HTTP server
       - name: Build image and push httpd
@@ -66,4 +43,4 @@ jobs:
         with:
           context: ./http-server
           tags: ${{ vars.FORGEJO_DOMAIN }}/${{ vars.FORGEJO_USERNAME }}/tp-devops-http-server:latest
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: true
