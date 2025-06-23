@@ -44,3 +44,11 @@ jobs:
           context: ./http-server
           tags: ${{ vars.FORGEJO_DOMAIN }}/${{ vars.FORGEJO_USERNAME }}/tp-devops-http-server:latest
           push: true
+
+      # Build and publish the container image for the frontend
+      - name: Build image and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./devops-front
+          tags: ${{ vars.FORGEJO_DOMAIN }}/${{ vars.FORGEJO_USERNAME }}/tp-devops-frontend:latest
+          push: true
