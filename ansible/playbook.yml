@@ -1,0 +1,11 @@
+- hosts: all
+  gather_facts: true
+  become: true
+  roles:
+    - docker
+
+  tasks:
+    - name: Add a docker group to admin
+      user:
+        append: true
+        groups: docker
